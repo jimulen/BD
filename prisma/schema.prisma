@@ -1,0 +1,200 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("POSTGRES_PRISMA_URL")
+  directUrl = env("POSTGRES_URL_NON_POOLING")
+}
+
+model User {
+  id         Int         @id @default(autoincrement())
+  username   String      @unique
+  password   String
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+  customers  Customer[]
+  products   Product[]
+  sales      Sale[]
+  orders     Order[]
+  transports Transport[]
+  cargo      Cargo[]
+  deliveries Delivery[]
+
+  @@map("users")
+}
+
+model Customer {
+  id             Int        @id @default(autoincrement())
+  name           String
+  phone          String
+  address        String
+  email          String?
+  photoPath      String?    @map("photo_path")
+  notes          String?
+  transportType  String     @default("own") @map("transport_type") // "own" or "company"
+  transportCost  Float      @default(0) @map("transport_cost") // in Tsh
+  transportNotes String?    @map("transport_notes")
+  createdAt      DateTime   @default(now()) @map("created_at")
+  updatedAt      DateTime   @updatedAt @map("updated_at")
+  createdBy      Int        @map("created_by")
+  user           User       @relation(fields: [createdBy], references: [id])
+  sales          Sale[]
+  orders         Order[]
+  cargo          Cargo[]
+  deliveries     Delivery[]
+
+  @@map("customers")
+}
+
+model Product {
+  id          Int         @id @default(autoincrement())
+  name        String
+  description String?
+  sku         String      @unique
+  price       Float // in Tsh
+  stockQty    Int         @default(0) @map("stock_qty")
+  minStock    Int         @default(5) @map("min_stock")
+  category    String
+  barcode     String?
+  image       String?
+  createdAt   DateTime    @default(now()) @map("created_at")
+  updatedAt   DateTime    @updatedAt @map("updated_at")
+  createdBy   Int         @map("created_by")
+  user        User        @relation(fields: [createdBy], references: [id])
+  sales       SaleItem[]
+  orders      OrderItem[]
+
+  @@map("products")
+}
+
+model Sale {
+  id              Int        @id @default(autoincrement())
+  invoiceNo       String     @unique @map("invoice_no")
+  customerId      Int        @map("customer_id")
+  customer        Customer   @relation(fields: [customerId], references: [id])
+  transportId     Int?       @map("transport_id")
+  transport       Transport? @relation(fields: [transportId], references: [id])
+  useOwnTransport Boolean    @default(false) @map("use_own_transport")
+  transportCost   Float      @default(0) @map("transport_cost") // in Tsh
+  distance        Float?     @map("distance")
+  subtotalAmount  Float      @map("subtotal_amount") // in Tsh
+  totalAmount     Float      @map("total_amount") // in Tsh
+  paymentType     String     @map("payment_type")
+  status          String     @default("completed")
+  notes           String?
+  createdAt       DateTime   @default(now()) @map("created_at")
+  updatedAt       DateTime   @updatedAt @map("updated_at")
+  createdBy       Int        @map("created_by")
+  user            User       @relation(fields: [createdBy], references: [id])
+  items           SaleItem[]
+
+  @@map("sales")
+}
+
+model SaleItem {
+  id         Int     @id @default(autoincrement())
+  saleId     Int     @map("sale_id")
+  sale       Sale    @relation(fields: [saleId], references: [id])
+  productId  Int     @map("product_id")
+  product    Product @relation(fields: [productId], references: [id])
+  quantity   Int
+  unitPrice  Float   @map("unit_price") // in Tsh
+  totalPrice Float   @map("total_price") // in Tsh
+
+  @@map("sale_items")
+}
+
+model Order {
+  id          Int         @id @default(autoincrement())
+  orderNo     String      @unique @map("order_no")
+  customerId  Int         @map("customer_id")
+  customer    Customer    @relation(fields: [customerId], references: [id])
+  status      String      @default("pending")
+  totalAmount Float       @map("total_amount") // in Tsh
+  notes       String?
+  createdAt   DateTime    @default(now()) @map("created_at")
+  updatedAt   DateTime    @updatedAt @map("updated_at")
+  createdBy   Int         @map("created_by")
+  user        User        @relation(fields: [createdBy], references: [id])
+  items       OrderItem[]
+
+  @@map("orders")
+}
+
+model OrderItem {
+  id         Int     @id @default(autoincrement())
+  orderId    Int     @map("order_id")
+  order      Order   @relation(fields: [orderId], references: [id])
+  productId  Int     @map("product_id")
+  product    Product @relation(fields: [productId], references: [id])
+  quantity   Int
+  unitPrice  Float   @map("unit_price") // in Tsh
+  totalPrice Float   @map("total_price") // in Tsh
+
+  @@map("order_items")
+}
+
+model Transport {
+  id          Int      @id @default(autoincrement())
+  name        String
+  description String?
+  baseCost    Float    @default(0) @map("base_cost") // in Tsh
+  costPerKm   Float    @default(0) @map("cost_per_km") // in Tsh
+  isActive    Boolean  @default(true) @map("is_active")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+  createdBy   Int      @map("created_by")
+  user        User     @relation(fields: [createdBy], references: [id])
+  sales       Sale[]
+
+  @@map("transports")
+}
+
+model Cargo {
+  id          Int        @id @default(autoincrement())
+  trackingNo  String     @unique @map("tracking_no")
+  description String
+  type        String // "store" or "processing"
+  status      String     @default("in_transit") // "in_transit", "in_store", "in_processing", "completed"
+  quantity    Float
+  unit        String     @default("kgs") // kgs, bags, etc.
+  dateIn      DateTime   @map("date_in") // exact date and time when cargo arrived
+  dateOut     DateTime?  @map("date_out") // exact date and time when cargo left
+  customerId  Int?       @map("customer_id")
+  customer    Customer?  @relation(fields: [customerId], references: [id])
+  notes       String?
+  createdAt   DateTime   @default(now()) @map("created_at")
+  updatedAt   DateTime   @updatedAt @map("updated_at")
+  createdBy   Int        @map("created_by")
+  user        User       @relation(fields: [createdBy], references: [id])
+  deliveries  Delivery[]
+
+  @@map("cargo")
+}
+
+model Delivery {
+  id           Int       @id @default(autoincrement())
+  trackingNo   String    @unique @map("tracking_no")
+  customerId   Int       @map("customer_id")
+  customer     Customer  @relation(fields: [customerId], references: [id])
+  cargoId      Int?      @map("cargo_id")
+  cargo        Cargo?    @relation(fields: [cargoId], references: [id])
+  productType  String    @map("product_type") // "stored_bags", "processed_rice"
+  quantity     Float
+  unit         String    @default("kgs") // kgs, bags, etc.
+  status       String    @default("pending") // "pending", "picked_up", "delivered", "completed"
+  pickupDate   DateTime  @map("pickup_date")
+  deliveryDate DateTime? @map("delivery_date")
+  notes        String?
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+  createdBy    Int       @map("created_by")
+  user         User      @relation(fields: [createdBy], references: [id])
+
+  @@map("deliveries")
+}
