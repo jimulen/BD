@@ -35,17 +35,21 @@ export async function GET(request: NextRequest) {
 
     // Filter by date range if provided
     if (startDate && endDate) {
+      const endOfDay = new Date(endDate)
+      endOfDay.setHours(23, 59, 59, 999)
       where.pickupDate = {
         gte: new Date(startDate),
-        lte: new Date(endDate)
+        lte: endOfDay
       }
     } else if (startDate) {
       where.pickupDate = {
         gte: new Date(startDate)
       }
     } else if (endDate) {
+      const endOfDay = new Date(endDate)
+      endOfDay.setHours(23, 59, 59, 999)
       where.pickupDate = {
-        lte: new Date(endDate)
+        lte: endOfDay
       }
     }
     
