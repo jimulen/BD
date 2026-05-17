@@ -48,8 +48,8 @@ export default function DashboardPage() {
         const cargoData = await cargoRes.json()
         
         const cargo = cargoData.cargo || []
-        const storeItems = cargo.filter(item => item.type === 'store')
-        const processingItems = cargo.filter(item => item.type === 'processing')
+        const storeItems = cargo.filter((item: any) => item.type === 'store')
+        const processingItems = cargo.filter((item: any) => item.type === 'processing')
         const recentCargo = cargo.slice(0, 5) // Last 5 cargo items
 
         setStats({

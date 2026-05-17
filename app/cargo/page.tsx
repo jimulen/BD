@@ -9,8 +9,8 @@ import { Navbar } from '@/components/Navbar'
 interface Cargo {
   id: number
   description: string
-  type: 'store'
-  status: 'in_store' | 'completed'
+  type: 'store' | 'processing'
+  status: 'in_transit' | 'in_store' | 'in_processing' | 'processed' | 'completed'
   quantity: number
   unit: string
   dateIn: string

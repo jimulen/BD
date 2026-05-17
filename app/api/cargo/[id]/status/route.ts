@@ -76,7 +76,6 @@ export async function PUT(
       message: 'Cargo status updated successfully',
       cargo: {
         ...updatedCargo,
-        transportCost: cargo.transportCost || 0, // Include original transport cost
         createdAt: updatedCargo.createdAt.toISOString(),
         updatedAt: updatedCargo.updatedAt.toISOString(),
         dateIn: updatedCargo.dateIn.toISOString(),

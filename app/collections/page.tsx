@@ -23,7 +23,7 @@ interface Collection {
   productType: 'stored_bags' | 'processed_rice'
   quantity: number
   unit: string
-  status: 'picked_up' | 'delivered' | 'completed'
+  status: 'pending' | 'picked_up' | 'delivered' | 'completed'
   pickupDate: string
   deliveryDate?: string
   notes?: string
@@ -211,7 +211,7 @@ export default function CollectionsPage() {
     }
   }
 
-  const handleStatusUpdate = async (collectionId: number, newStatus: 'picked_up' | 'delivered' | 'completed') => {
+  const handleStatusUpdate = async (collectionId: number, newStatus: 'pending' | 'picked_up' | 'delivered' | 'completed') => {
     try {
       const token = localStorage.getItem('token')
       const response = await fetch(`/api/collections/${collectionId}/status`, {

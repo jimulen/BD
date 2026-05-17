@@ -151,7 +151,7 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error('Debug API error:', error)
     return NextResponse.json(
-      { message: 'Internal server error', error: error.message },
+      { message: 'Internal server error', error: error instanceof Error ? error.message : String(error) },
       { status: 500 }
     )
   }

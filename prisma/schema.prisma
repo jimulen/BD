@@ -23,6 +23,7 @@ model User {
   transports Transport[]
   cargo      Cargo[]
   deliveries Delivery[]
+  processing Processing[]
 
   @@map("users")
 }
@@ -162,6 +163,7 @@ model Cargo {
   status      String     @default("in_transit") // "in_transit", "in_store", "in_processing", "completed"
   quantity    Float
   unit        String     @default("kgs") // kgs, bags, etc.
+  transportCost Float      @default(0) @map("transport_cost")
   dateIn      DateTime   @map("date_in") // exact date and time when cargo arrived
   dateOut     DateTime?  @map("date_out") // exact date and time when cargo left
   customerId  Int?       @map("customer_id")
@@ -172,6 +174,7 @@ model Cargo {
   createdBy   Int        @map("created_by")
   user        User       @relation(fields: [createdBy], references: [id])
   deliveries  Delivery[]
+  processing  Processing[]
 
   @@map("cargo")
 }
@@ -196,4 +199,24 @@ model Delivery {
   user         User      @relation(fields: [createdBy], references: [id])
 
   @@map("deliveries")
+}
+
+model Processing {
+  id            Int      @id @default(autoincrement())
+  cargoId       Int      @map("cargo_id")
+  cargo         Cargo    @relation(fields: [cargoId], references: [id])
+  inputType     String   @map("input_type")
+  inputQty      Float    @map("input_qty")
+  inputUnit     String   @map("input_unit")
+  outputType    String   @map("output_type")
+  outputQty     Float    @map("output_qty")
+  outputUnit    String   @map("output_unit")
+  dateProcessed DateTime @map("date_processed")
+  notes         String?
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+  createdBy     Int      @map("created_by")
+  user          User     @relation(fields: [createdBy], references: [id])
+
+  @@map("processing")
 }
